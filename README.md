@@ -78,7 +78,7 @@ flowchart TB
 *   **Animations:** Motion (formerly Framer Motion)
 *   **Charts:** Recharts (D3-based)
 *   **Backend/DB:** Firebase (Auth, Firestore)
-*   **Deployment:** Google Cloud Run
+*   **Deployment:** Vercel
 
 ## 📦 Getting Started
 
@@ -97,12 +97,21 @@ flowchart TB
     npm run dev
     ```
 
-## 🛡 Security & Compliance
+## Snapshots of the project
+<img width="1437" height="873" alt="Screenshot 2026-04-06 201716" src="https://github.com/user-attachments/assets/1b1e6ed9-b85f-4460-9ab8-800d9953b1a7" />
+<img width="1353" height="861" alt="Screenshot 2026-04-06 201735" src="https://github.com/user-attachments/assets/3b7eb3e5-344c-428e-a4ec-b594abfe8f73" />
+<img width="1896" height="865" alt="Screenshot 2026-04-06 202239" src="https://github.com/user-attachments/assets/6680db90-7ebe-468a-b2d9-6f0481b6d9f5" />
+<img width="1895" height="864" alt="Screenshot 2026-04-06 202303" src="https://github.com/user-attachments/assets/7e9a6cf6-fdd8-49ac-983a-0302f2777a8b" />
+<img width="1894" height="862" alt="Screenshot 2026-04-06 202315" src="https://github.com/user-attachments/assets/ccf600d5-dfd4-43df-8f03-82c4c5fe970c" />
+<img width="1876" height="870" alt="Screenshot 2026-04-06 202341" src="https://github.com/user-attachments/assets/fcfff745-d072-43be-a9ce-43b09245e807" />
+<img width="1872" height="848" alt="Screenshot 2026-04-06 202358" src="https://github.com/user-attachments/assets/b43f5e04-e6cd-4984-8a69-3bcce1d74c49" />
+<img width="1904" height="835" alt="Screenshot 2026-04-06 202637" src="https://github.com/user-attachments/assets/71188140-f457-45d9-b8b4-02991db0f8f2" />
 
-*   **Firestore Rules:** All data access is governed by strict server-side rules.
-*   **PII Protection:** User emails and sensitive data are scoped to the authenticated owner.
-*   **Input Validation:** All financial entries are validated for type, range, and schema integrity.
 
----
+
+
+
+
+
 
 
