@@ -1,0 +1,102 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=DM+Mono:wght@400&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "DM Sans", sans-serif;
+  --font-mono: "DM Mono", monospace;
+  
+  --color-bg: #F8FAFC;
+  --color-text: #0F172A;
+  --color-accent: #2563EB;
+  --color-surface: #FFFFFF;
+  --color-border: #F1F5F9;
+  --color-muted: #475569;
+  --color-success: #10B981;
+  --color-expense: #F43F5E;
+  
+  /* Category Colors */
+  --color-cat-teal: #2DD4BF;
+  --color-cat-rose: #F43F5E;
+  --color-cat-amber: #F59E0B;
+  --color-cat-indigo: #6366F1;
+  --color-cat-emerald: #10B981;
+  --color-cat-purple: #A855F7;
+  --color-cat-orange: #FB923C;
+}
+
+.dark {
+  --color-bg: #0F172A;
+  --color-text: #F8FAFC;
+  --color-accent: #3B82F6;
+  --color-surface: #1E293B;
+  --color-border: #334155;
+  --color-muted: #94A3B8;
+  --color-success: #10B981;
+  --color-expense: #F43F5E;
+
+  /* Dark Mode Category Colors (slightly adjusted for visibility) */
+  --color-cat-teal: #2DD4BF;
+  --color-cat-rose: #FB7185;
+  --color-cat-amber: #FBBF24;
+  --color-cat-indigo: #818CF8;
+  --color-cat-emerald: #34D399;
+  --color-cat-purple: #C084FC;
+  --color-cat-orange: #FB923C;
+}
+
+@layer base {
+  body {
+    @apply bg-bg text-text font-sans antialiased;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  h1, h2, h3 {
+    @apply font-sans font-medium tracking-tight;
+  }
+
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+    @apply font-mono;
+  }
+}
+
+@layer components {
+  .card-shadow {
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+  }
+
+  .hairline-border {
+    @apply border border-border;
+  }
+
+  .staggered-fade-in > * {
+    opacity: 0;
+    transform: translateY(10px);
+    animation: fadeIn 0.4s forwards;
+  }
+
+  @keyframes fadeIn {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .hover-accent {
+    @apply relative transition-all duration-150;
+  }
+
+  .hover-accent::before {
+    content: '';
+    @apply absolute left-0 top-0 bottom-0 w-0 bg-accent transition-all duration-150;
+  }
+
+  .hover-accent:hover::before {
+    @apply w-[2px];
+  }
+
+  *:focus-visible {
+    @apply outline-none ring-2 ring-accent/40 ring-offset-2 ring-offset-bg;
+  }
+}

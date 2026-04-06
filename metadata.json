@@ -1,0 +1,5 @@
+{
+  "name": "My Ledger",
+  "description": "A role-based financial management system with real-time analytics and record tracking.",
+  "requestFramePermissions": []
+}
