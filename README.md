@@ -58,11 +58,11 @@ flowchart TB
     end
 
     subgraph Infrastructure ["Infrastructure"]
-        GCR[Google Cloud Run]
+        Vercel[Vercel]
     end
 
-    User <--> GCR
-    GCR -- Serves --> Frontend
+    User <--> Vercel
+    Vercel -- Serves --> Frontend
     Frontend <--> Auth
     Frontend <--> Firestore
     
