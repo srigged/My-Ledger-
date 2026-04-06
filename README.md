@@ -1,6 +1,4 @@
-# My Ledger: Financial Management Dashboard
-
-A high-precision, role-based financial management system with a dark editorial aesthetic.
+# My Ledger - Secure Financial Management Portal
 
 A high-performance, production-grade financial tracking application built with **React**, **TypeScript**, and **Firebase**. Designed for precision, security, and real-time data exploration.
 
@@ -30,6 +28,8 @@ A high-performance, production-grade financial tracking application built with *
 *   **Requirement:** Instant updates across all connected clients without page refreshes.
 *   **Achievement:** Leveraged Firestore's `onSnapshot` listeners for both user profiles and financial records. This ensures that any change made by an Admin is instantly reflected on an Analyst's dashboard.
 
+---
+
 ## 🏗 Architecture Diagram
 
 ```mermaid
@@ -58,11 +58,11 @@ flowchart TB
     end
 
     subgraph Infrastructure ["Infrastructure"]
-        Vercel[Vercel]
+        GCR[Google Cloud Run]
     end
 
-    User <--> Vercel
-    Vercel -- Serves --> Frontend
+    User <--> GCR
+    GCR -- Serves --> Frontend
     Frontend <--> Auth
     Frontend <--> Firestore
     
@@ -71,22 +71,38 @@ flowchart TB
     style Infrastructure fill:#dfd,stroke:#333,stroke-width:2px
 ```
 
-## Technical Details
-- **Framework:** React 19 + Vite.
-- **Routing:** React Router v6 with Protected Routes.
-- **State Management:** React Context for Auth/Role state.
-- **Charts:** Recharts for trend and allocation analysis.
-- **Motion:** motion/react for staggered animations and crisp transitions.
+## 🛠 Tech Stack
 
-## Running the Project
-1. `npm install`
-2. `npm run dev`
+*   **Frontend:** React 18, TypeScript, Vite
+*   **Styling:** Tailwind CSS, Lucide React (Icons)
+*   **Animations:** Motion (formerly Framer Motion)
+*   **Charts:** Recharts (D3-based)
+*   **Backend/DB:** Firebase (Auth, Firestore)
+*   **Deployment:** Google Cloud Run
 
-## API Mode
-The application currently uses **Mock Data** by default (defined in `src/api/mockData.ts`). 
-To switch to the live backend, set `USE_MOCK = false` in `src/api/index.ts`.
+## 📦 Getting Started
 
-## Design Decisions
-- **Hidden UI:** Unauthorized actions (like 'Edit' or 'Delete' for Viewers) are not rendered at all to maintain a clean interface.
-- **Uncompromising Typography:** System fonts are completely avoided in favor of the editorial pairing to reinforce the "precision instrument" feel.
-- **Grid-Breaking Elements:** Subtle rotated watermarks are used to add visual interest to the rigid grid layout.
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/your-username/my-ledger.git
+    ```
+2.  **Install dependencies:**
+    ```bash
+    npm install
+    ```
+3.  **Configure Firebase:**
+    Create a `firebase-applet-config.json` in the root with your Firebase project credentials.
+4.  **Run Development Server:**
+    ```bash
+    npm run dev
+    ```
+
+## 🛡 Security & Compliance
+
+*   **Firestore Rules:** All data access is governed by strict server-side rules.
+*   **PII Protection:** User emails and sensitive data are scoped to the authenticated owner.
+*   **Input Validation:** All financial entries are validated for type, range, and schema integrity.
+
+---
+
+*Built with precision in Google AI Studio Build.*

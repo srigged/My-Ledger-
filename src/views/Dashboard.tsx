@@ -2,12 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { api, DashboardSummary, FinancialRecord } from '../api';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
-
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+import { cn, formatCurrency } from '../lib/utils';
 
 import { 
   LineChart, 
@@ -152,10 +147,10 @@ export const Dashboard: React.FC = () => {
               <span className="text-[10px] font-bold text-muted uppercase tracking-widest">{kpi.label}</span>
               <div className={cn(
                 "tabular-nums text-text tracking-tight",
-                "text-[25px]",
+                "text-[22px]",
                 kpi.isCount ? "font-normal" : "font-bold"
               )}>
-                {kpi.isCount ? '' : '$'}{kpi.value.toLocaleString()}
+                {kpi.isCount ? kpi.value.toLocaleString() : formatCurrency(kpi.value)}
               </div>
             </div>
           </motion.div>
@@ -207,7 +202,7 @@ export const Dashboard: React.FC = () => {
                   axisLine={false} 
                   tickLine={false} 
                   tick={{ fontSize: 11, fill: tickColor, fontFamily: 'DM Mono' }} 
-                  tickFormatter={(value) => `$${value}`}
+                  tickFormatter={(value) => formatCurrency(value, 'USD', 'en-US').split('.')[0]}
                 />
                 <Tooltip 
                   contentStyle={{ 
@@ -221,7 +216,7 @@ export const Dashboard: React.FC = () => {
                     color: tooltipText
                   }}
                   itemStyle={{ padding: '2px 0', color: tooltipText }}
-                  formatter={(value: number) => [`$${value.toLocaleString()}`, '']}
+                  formatter={(value: number) => [formatCurrency(value), '']}
                   cursor={{ stroke: '#6366F1', strokeWidth: 1, strokeDasharray: '4 4' }}
                 />
                 <Line 
@@ -288,6 +283,7 @@ export const Dashboard: React.FC = () => {
                   cursor={{ fill: 'transparent' }}
                   contentStyle={{ backgroundColor: tooltipBg, border: 'none', borderRadius: '12px', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', fontFamily: 'DM Mono', fontSize: '11px', color: tooltipText }}
                   itemStyle={{ color: tooltipText }}
+                  formatter={(value: number) => [formatCurrency(value), '']}
                 />
                 <Bar dataKey="value" barSize={12} radius={[0, 6, 6, 0]} name="Amount">
                   {summary.categoryBreakdown.map((entry, index) => (
@@ -351,7 +347,7 @@ export const Dashboard: React.FC = () => {
                     </div>
                   </td>
                   <td className={`px-6 py-4 text-right font-bold tabular-nums text-lg ${record.type === 'expense' ? 'text-expense' : 'text-success'}`}>
-                    {record.type === 'expense' ? '-' : '+'}${record.amount.toFixed(2)}
+                    {record.type === 'expense' ? '-' : '+'}{formatCurrency(record.amount)}
                   </td>
                 </tr>
               ))}

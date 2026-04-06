@@ -75,7 +75,9 @@ export const Login: React.FC = () => {
       }
       navigate(from, { replace: true });
     } catch (err: any) {
-      // Error is handled in context, but we can catch it here for specific local handling if needed
+      if (err.code === 'auth/operation-not-allowed') {
+        setLocalError('EMAIL/PASSWORD SIGNUP IS CURRENTLY DISABLED IN THE FIREBASE CONSOLE. PLEASE CONTACT THE ADMINISTRATOR TO ENABLE IT.');
+      }
     }
   };
 

@@ -1,6 +1,20 @@
-import { MOCK_RECORDS, MOCK_USERS, MOCK_SUMMARY } from './mockData';
-
-const USE_MOCK = true; // For now, we'll use mock data as the backend is just a skeleton.
+import { 
+  collection, 
+  getDocs, 
+  addDoc, 
+  updateDoc, 
+  deleteDoc, 
+  doc, 
+  query, 
+  orderBy, 
+  limit,
+  serverTimestamp,
+  Timestamp,
+  getDoc,
+  setDoc
+} from 'firebase/firestore';
+import { db } from '../firebase';
+import { handleFirestoreError, OperationType } from '../lib/utils';
 
 export interface UserProfile {
   uid: string;
@@ -34,71 +48,145 @@ export interface DashboardSummary {
 // API Layer
 export const api = {
   getRecords: async (): Promise<FinancialRecord[]> => {
-    if (USE_MOCK) return MOCK_RECORDS as FinancialRecord[];
-    const res = await fetch('/api/records');
-    return res.json();
+    try {
+      const q = query(collection(db, 'records'), orderBy('date', 'desc'));
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as FinancialRecord[];
+    } catch (error) {
+      handleFirestoreError(error, OperationType.LIST, 'records');
+      return [];
+    }
   },
   
   getUsers: async (): Promise<UserProfile[]> => {
-    if (USE_MOCK) return MOCK_USERS as UserProfile[];
-    const res = await fetch('/api/users');
-    return res.json();
+    try {
+      const snapshot = await getDocs(collection(db, 'users'));
+      return snapshot.docs.map(doc => ({
+        uid: doc.id,
+        ...doc.data()
+      })) as UserProfile[];
+    } catch (error) {
+      handleFirestoreError(error, OperationType.LIST, 'users');
+      return [];
+    }
   },
   
   getSummary: async (): Promise<DashboardSummary> => {
-    if (USE_MOCK) return MOCK_SUMMARY;
-    const res = await fetch('/api/summary');
-    return res.json();
+    const records = await api.getRecords();
+    
+    let totalIncome = 0;
+    let totalExpenses = 0;
+    const categoryMap: Record<string, number> = {};
+    const monthMap: Record<string, { income: number; expense: number }> = {};
+
+    records.forEach(r => {
+      if (r.type === 'income') {
+        totalIncome += r.amount;
+      } else {
+        totalExpenses += r.amount;
+        categoryMap[r.category] = (categoryMap[r.category] || 0) + r.amount;
+      }
+
+      const date = new Date(r.date);
+      const month = date.toLocaleString('default', { month: 'short' });
+      if (!monthMap[month]) monthMap[month] = { income: 0, expense: 0 };
+      if (r.type === 'income') monthMap[month].income += r.amount;
+      else monthMap[month].expense += r.amount;
+    });
+
+    const trends = Object.entries(monthMap).map(([month, data]) => ({
+      month,
+      ...data
+    })).slice(-6);
+
+    const categoryBreakdown = Object.entries(categoryMap).map(([name, value]) => ({
+      name,
+      value
+    }));
+
+    return {
+      totalIncome,
+      totalExpenses,
+      netBalance: totalIncome - totalExpenses,
+      transactionCount: records.length,
+      trends,
+      categoryBreakdown
+    };
   },
   
   createRecord: async (record: Partial<FinancialRecord>): Promise<FinancialRecord> => {
-    if (USE_MOCK) {
-      const newRecord = { ...record, id: Math.random().toString(36).substr(2, 9), createdAt: new Date().toISOString() } as FinancialRecord;
-      MOCK_RECORDS.unshift(newRecord as any);
-      return newRecord;
+    try {
+      const docRef = await addDoc(collection(db, 'records'), {
+        ...record,
+        createdAt: new Date().toISOString()
+      });
+      const newDoc = await getDoc(docRef);
+      return { id: docRef.id, ...newDoc.data() } as FinancialRecord;
+    } catch (error) {
+      handleFirestoreError(error, OperationType.CREATE, 'records');
+      throw error;
     }
-    const res = await fetch('/api/records', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(record),
-    });
-    return res.json();
   },
   
   updateRecord: async (id: string, record: Partial<FinancialRecord>): Promise<FinancialRecord> => {
-    if (USE_MOCK) {
-      const index = MOCK_RECORDS.findIndex(r => r.id === id);
-      MOCK_RECORDS[index] = { ...MOCK_RECORDS[index], ...record } as any;
-      return MOCK_RECORDS[index] as any;
+    try {
+      const docRef = doc(db, 'records', id);
+      await updateDoc(docRef, record);
+      const updatedDoc = await getDoc(docRef);
+      return { id, ...updatedDoc.data() } as FinancialRecord;
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, `records/${id}`);
+      throw error;
     }
-    const res = await fetch(`/api/records/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(record),
-    });
-    return res.json();
   },
   
   deleteRecord: async (id: string): Promise<void> => {
-    if (USE_MOCK) {
-      const index = MOCK_RECORDS.findIndex(r => r.id === id);
-      MOCK_RECORDS.splice(index, 1);
-      return;
+    try {
+      await deleteDoc(doc(db, 'records', id));
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, `records/${id}`);
+      throw error;
     }
-    await fetch(`/api/records/${id}`, { method: 'DELETE' });
   },
   
   updateUser: async (uid: string, data: Partial<UserProfile>): Promise<UserProfile> => {
-    if (USE_MOCK) {
-      const index = MOCK_USERS.findIndex(u => u.uid === uid);
-      MOCK_USERS[index] = { ...MOCK_USERS[index], ...data } as any;
-      return MOCK_USERS[index] as any;
+    try {
+      const docRef = doc(db, 'users', uid);
+      await updateDoc(docRef, data);
+      const updatedDoc = await getDoc(docRef);
+      return { uid, ...updatedDoc.data() } as UserProfile;
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, `users/${uid}`);
+      throw error;
     }
-    const res = await fetch(`/api/users/${uid}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    return res.json();
+  },
+
+  createUser: async (data: Partial<UserProfile>): Promise<UserProfile> => {
+    try {
+      const docRef = doc(collection(db, 'users'));
+      const newUser = {
+        ...data,
+        uid: docRef.id,
+        status: 'active',
+        createdAt: new Date().toISOString()
+      } as UserProfile;
+      await setDoc(docRef, newUser);
+      return newUser;
+    } catch (error) {
+      handleFirestoreError(error, OperationType.CREATE, 'users');
+      throw error;
+    }
+  },
+
+  deleteUser: async (uid: string): Promise<void> => {
+    try {
+      await deleteDoc(doc(db, 'users', uid));
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, `users/${uid}`);
+      throw error;
+    }
   }
 };

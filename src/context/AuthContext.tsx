@@ -42,9 +42,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (docSnap.exists()) {
             setUser(docSnap.data() as UserProfile);
           } else {
-            // If profile doesn't exist, we don't set a default here to avoid race conditions
-            // with login/signup functions. We just wait for them to create it.
-            // If this is a refresh and the doc is truly missing, the user will be redirected to login.
             setUser(null);
           }
           setLoading(false);
@@ -156,7 +153,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, loginWithEmail, signupWithEmail, loginWithGoogle, resetPassword, logout, loading, error }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      loginWithEmail, 
+      signupWithEmail, 
+      loginWithGoogle, 
+      resetPassword, 
+      logout, 
+      loading, 
+      error 
+    }}>
       {children}
     </AuthContext.Provider>
   );

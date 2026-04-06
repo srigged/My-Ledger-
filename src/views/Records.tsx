@@ -16,12 +16,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Modal } from '../components/Modal';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
-
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+import { cn, formatCurrency } from '../lib/utils';
 
 const CATEGORY_COLORS: { [key: string]: string } = {
   'Food': '#F43F5E',
@@ -251,7 +246,7 @@ export const Records: React.FC = () => {
                     </div>
                   </td>
                   <td className={`px-6 py-4 text-right font-bold tabular-nums text-lg ${record.type === 'expense' ? 'text-expense' : 'text-success'}`}>
-                    {record.type === 'expense' ? '-' : '+'}${record.amount.toFixed(2)}
+                    {record.type === 'expense' ? '-' : '+'}{formatCurrency(record.amount)}
                   </td>
                   {user?.role === 'admin' && (
                     <td className="px-6 py-4 text-right">

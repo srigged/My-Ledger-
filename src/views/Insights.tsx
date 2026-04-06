@@ -16,6 +16,7 @@ import {
 } from 'recharts';
 import { motion } from 'motion/react';
 import { TrendingUp, TrendingDown, DollarSign, Activity } from 'lucide-react';
+import { formatCurrency } from '../lib/utils';
 
 const CATEGORY_COLORS: { [key: string]: string } = {
   'Food': '#F43F5E',
@@ -113,10 +114,10 @@ export const Insights: React.FC = () => {
                 {summary.trends.map((t) => (
                   <tr key={t.month} className="hover:bg-bg/20 transition-colors">
                     <td className="px-4 py-4 text-text font-bold uppercase text-center">{t.month}</td>
-                    <td className="px-4 py-4 text-right text-success font-bold tabular-nums">${t.income.toLocaleString()}</td>
-                    <td className="px-4 py-4 text-right text-expense font-bold tabular-nums">${t.expense.toLocaleString()}</td>
+                    <td className="px-4 py-4 text-right text-success font-bold tabular-nums">{formatCurrency(t.income)}</td>
+                    <td className="px-4 py-4 text-right text-expense font-bold tabular-nums">{formatCurrency(t.expense)}</td>
                     <td className={`px-4 py-4 text-right font-bold tabular-nums text-sm ${t.income - t.expense >= 0 ? 'text-accent' : 'text-expense'}`}>
-                      ${(t.income - t.expense).toLocaleString()}
+                      {formatCurrency(t.income - t.expense)}
                     </td>
                   </tr>
                 ))}
@@ -161,6 +162,7 @@ export const Insights: React.FC = () => {
                     color: tooltipText
                   }}
                   itemStyle={{ color: tooltipText }}
+                  formatter={(value: number) => [formatCurrency(value), '']}
                 />
               </RePieChart>
             </ResponsiveContainer>
@@ -170,7 +172,7 @@ export const Insights: React.FC = () => {
               <div key={c.name} className="flex items-center gap-3 p-2 rounded-xl hover:bg-bg transition-colors" role="listitem">
                 <div className="w-3 h-3 rounded-full" style={{ backgroundColor: CATEGORY_COLORS[c.name] || '#2563EB' }} aria-hidden="true" />
                 <span className="text-[10px] font-bold text-muted uppercase tracking-widest">{c.name}</span>
-                <span className="text-[10px] font-bold tabular-nums text-text ml-auto">${c.value.toFixed(0)}</span>
+                <span className="text-[10px] font-bold tabular-nums text-text ml-auto">{formatCurrency(c.value)}</span>
               </div>
             ))}
           </div>
@@ -212,7 +214,7 @@ export const Insights: React.FC = () => {
               </div>
               <div className="text-right">
                 <p className={`text-xl font-bold tabular-nums ${t.type === 'expense' ? 'text-expense' : 'text-success'}`}>
-                  {t.type === 'expense' ? '-' : '+'}${t.amount.toLocaleString()}
+                  {t.type === 'expense' ? '-' : '+'}{formatCurrency(t.amount)}
                 </p>
                 <span className="text-[10px] font-bold text-muted uppercase tracking-widest">{t.type}</span>
               </div>

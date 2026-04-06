@@ -8,6 +8,7 @@ import {
   ShieldAlert, 
   ShieldCheck,
   X,
+  Check,
   Edit2,
   Trash2
 } from 'lucide-react';
@@ -31,10 +32,21 @@ export const Users: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [showDrawer, setShowDrawer] = useState(false);
   const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
+  const [drawerRole, setDrawerRole] = useState<'admin' | 'analyst' | 'viewer'>('viewer');
+  const [inlineEditingId, setInlineEditingId] = useState<string | null>(null);
+  const [inlineFormData, setInlineFormData] = useState<{ displayName: string; role: 'admin' | 'analyst' | 'viewer' }>({ displayName: '', role: 'viewer' });
 
   useEffect(() => {
     fetchUsers();
   }, []);
+
+  useEffect(() => {
+    if (editingUser) {
+      setDrawerRole(editingUser.role);
+    } else {
+      setDrawerRole('viewer');
+    }
+  }, [editingUser]);
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -48,6 +60,50 @@ export const Users: React.FC = () => {
     // Optimistic UI update
     setUsers(users.map(u => u.uid === uid ? { ...u, status: newStatus as any } : u));
     await api.updateUser(uid, { status: newStatus as any });
+  };
+
+  const handleInlineEditStart = (u: UserProfile) => {
+    setInlineEditingId(u.uid);
+    setInlineFormData({ displayName: u.displayName, role: u.role });
+  };
+
+  const handleInlineSave = async (uid: string) => {
+    // Optimistic UI update
+    setUsers(users.map(u => u.uid === uid ? { ...u, ...inlineFormData } : u));
+    setInlineEditingId(null);
+    await api.updateUser(uid, inlineFormData);
+  };
+
+  const handleInlineCancel = () => {
+    setInlineEditingId(null);
+  };
+
+  const handleDeleteUser = async (uid: string) => {
+    if (window.confirm('Are you sure you want to remove this user? This action cannot be undone.')) {
+      // Optimistic UI update
+      setUsers(users.filter(u => u.uid !== uid));
+      await api.deleteUser(uid);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const displayName = formData.get('displayName') as string;
+    const email = formData.get('email') as string;
+
+    try {
+      if (editingUser) {
+        await api.updateUser(editingUser.uid, { displayName, email, role: drawerRole });
+      } else {
+        await api.createUser({ displayName, email, role: drawerRole });
+      }
+      setShowDrawer(false);
+      setEditingUser(null);
+      fetchUsers();
+    } catch (error) {
+      console.error('Failed to save user:', error);
+    }
   };
 
   if (loading) return (
@@ -113,36 +169,60 @@ export const Users: React.FC = () => {
           </thead>
           <tbody className="divide-y divide-border">
             {users.map((u) => (
-              <tr key={u.uid} className="hover:bg-bg/10 transition-colors group">
+              <tr key={u.uid} className={cn("hover:bg-bg/10 transition-colors group", inlineEditingId === u.uid && "bg-accent/5")}>
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-4">
                     <div 
                       className="w-10 h-10 rounded-xl flex items-center justify-center text-xs font-bold text-white shadow-sm"
-                      style={{ backgroundColor: ROLE_COLORS[u.role] }}
+                      style={{ backgroundColor: ROLE_COLORS[inlineEditingId === u.uid ? inlineFormData.role : u.role] }}
                       aria-hidden="true"
                     >
-                      {u.displayName.charAt(0).toUpperCase()}
+                      {(inlineEditingId === u.uid ? inlineFormData.displayName : u.displayName).charAt(0).toUpperCase()}
                     </div>
-                    <span className="text-text font-bold uppercase tracking-tight">{u.displayName}</span>
+                    {inlineEditingId === u.uid ? (
+                      <input 
+                        type="text"
+                        value={inlineFormData.displayName}
+                        onChange={(e) => setInlineFormData({ ...inlineFormData, displayName: e.target.value })}
+                        className="bg-bg border border-border px-3 py-1 rounded-lg text-text font-bold uppercase tracking-tight focus:border-accent outline-none transition-all"
+                        autoFocus
+                      />
+                    ) : (
+                      <span className="text-text font-bold uppercase tracking-tight">{u.displayName}</span>
+                    )}
                   </div>
                 </td>
                 <td className="px-6 py-4 text-muted lowercase tracking-normal font-bold">{u.email}</td>
                 <td className="px-6 py-4">
-                  <span 
-                    className="px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest text-white"
-                    style={{ backgroundColor: ROLE_COLORS[u.role] }}
-                  >
-                    {u.role}
-                  </span>
+                  {inlineEditingId === u.uid ? (
+                    <select 
+                      value={inlineFormData.role}
+                      onChange={(e) => setInlineFormData({ ...inlineFormData, role: e.target.value as any })}
+                      className="bg-bg border border-border px-3 py-1 rounded-lg text-[9px] font-bold uppercase tracking-widest text-text focus:border-accent outline-none transition-all"
+                    >
+                      <option value="admin">ADMIN</option>
+                      <option value="analyst">ANALYST</option>
+                      <option value="viewer">VIEWER</option>
+                    </select>
+                  ) : (
+                    <span 
+                      className="px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest text-white"
+                      style={{ backgroundColor: ROLE_COLORS[u.role] }}
+                    >
+                      {u.role}
+                    </span>
+                  )}
                 </td>
                 <td className="px-6 py-4">
                   <button 
                     onClick={() => handleStatusToggle(u.uid, u.status)}
+                    disabled={inlineEditingId === u.uid}
                     className={cn(
                       "flex items-center gap-2 px-4 py-1.5 rounded-full border-2 transition-all font-bold outline-none focus:ring-2 focus:ring-accent/10",
                       u.status === 'active' 
                         ? "border-success/20 bg-success/5 text-success" 
-                        : "border-muted/20 bg-muted/5 text-muted"
+                        : "border-muted/20 bg-muted/5 text-muted",
+                      inlineEditingId === u.uid && "opacity-50 cursor-not-allowed"
                     )}
                     aria-label={`Toggle status for ${u.displayName}. Current status: ${u.status}`}
                   >
@@ -151,20 +231,49 @@ export const Users: React.FC = () => {
                   </button>
                 </td>
                 <td className="px-6 py-4 text-right">
-                  <div className="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button 
-                      onClick={() => { setEditingUser(u); setShowDrawer(true); }}
-                      className="p-2 bg-accent/10 text-accent rounded-lg hover:bg-accent hover:text-white transition-all outline-none focus:ring-2 focus:ring-accent/20"
-                      aria-label={`Edit user ${u.displayName}`}
-                    >
-                      <Edit2 className="w-3 h-3" aria-hidden="true" />
-                    </button>
-                    <button 
-                      className="p-2 bg-expense/10 text-expense rounded-lg hover:bg-expense hover:text-white transition-all outline-none focus:ring-2 focus:ring-expense/20"
-                      aria-label={`Delete user ${u.displayName}`}
-                    >
-                      <Trash2 className="w-3 h-3" aria-hidden="true" />
-                    </button>
+                  <div className={cn("flex items-center justify-end gap-3 transition-opacity", inlineEditingId !== u.uid && "opacity-0 group-hover:opacity-100")}>
+                    {inlineEditingId === u.uid ? (
+                      <>
+                        <button 
+                          onClick={() => handleInlineSave(u.uid)}
+                          className="p-2 bg-success/10 text-success rounded-lg hover:bg-success hover:text-white transition-all outline-none focus:ring-2 focus:ring-success/20"
+                          aria-label="Save changes"
+                        >
+                          <Check className="w-3 h-3" aria-hidden="true" />
+                        </button>
+                        <button 
+                          onClick={handleInlineCancel}
+                          className="p-2 bg-expense/10 text-expense rounded-lg hover:bg-expense hover:text-white transition-all outline-none focus:ring-2 focus:ring-expense/20"
+                          aria-label="Cancel editing"
+                        >
+                          <X className="w-3 h-3" aria-hidden="true" />
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button 
+                          onClick={() => handleInlineEditStart(u)}
+                          className="p-2 bg-accent/10 text-accent rounded-lg hover:bg-accent hover:text-white transition-all outline-none focus:ring-2 focus:ring-accent/20"
+                          aria-label={`Inline edit user ${u.displayName}`}
+                        >
+                          <Edit2 className="w-3 h-3" aria-hidden="true" />
+                        </button>
+                        <button 
+                          onClick={() => { setEditingUser(u); setShowDrawer(true); }}
+                          className="p-2 bg-accent/10 text-accent rounded-lg hover:bg-accent hover:text-white transition-all outline-none focus:ring-2 focus:ring-accent/20"
+                          aria-label={`Edit user ${u.displayName} in drawer`}
+                        >
+                          <MoreVertical className="w-3 h-3" aria-hidden="true" />
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteUser(u.uid)}
+                          className="p-2 bg-expense/10 text-expense rounded-lg hover:bg-expense hover:text-white transition-all outline-none focus:ring-2 focus:ring-expense/20"
+                          aria-label={`Delete user ${u.displayName}`}
+                        >
+                          <Trash2 className="w-3 h-3" aria-hidden="true" />
+                        </button>
+                      </>
+                    )}
                   </div>
                 </td>
               </tr>
@@ -210,11 +319,12 @@ export const Users: React.FC = () => {
                 </button>
               </div>
 
-              <form className="space-y-8 flex-1 overflow-y-auto pr-2">
+              <form onSubmit={handleSubmit} className="space-y-8 flex-1 overflow-y-auto pr-2">
                 <div className="space-y-3">
                   <label htmlFor="displayName" className="text-[10px] font-bold text-muted uppercase tracking-widest">DISPLAY NAME</label>
                   <input 
                     id="displayName"
+                    name="displayName"
                     type="text" 
                     defaultValue={editingUser?.displayName}
                     className="w-full bg-bg border border-border p-4 rounded-2xl text-sm font-bold focus:border-accent outline-none uppercase transition-all focus:ring-2 focus:ring-accent/10"
@@ -227,6 +337,7 @@ export const Users: React.FC = () => {
                   <label htmlFor="email" className="text-[10px] font-bold text-muted uppercase tracking-widest">EMAIL ADDRESS</label>
                   <input 
                     id="email"
+                    name="email"
                     type="email" 
                     defaultValue={editingUser?.email}
                     className="w-full bg-bg border border-border p-4 rounded-2xl text-sm font-bold focus:border-accent outline-none transition-all focus:ring-2 focus:ring-accent/10"
@@ -242,28 +353,28 @@ export const Users: React.FC = () => {
                       <button
                         key={role}
                         type="button"
+                        onClick={() => setDrawerRole(role as any)}
                         className={cn(
                           "w-full py-5 rounded-2xl border-2 text-[10px] font-bold uppercase tracking-widest transition-all flex items-center justify-between px-6 outline-none focus:ring-2 focus:ring-accent/20",
-                          (editingUser?.role || 'viewer') === role 
+                          drawerRole === role 
                             ? "bg-accent border-accent text-white shadow-lg shadow-accent/30" 
                             : "border-border text-muted hover:border-accent"
                         )}
                         role="radio"
-                        aria-checked={(editingUser?.role || 'viewer') === role}
+                        aria-checked={drawerRole === role}
                       >
                         <div className="flex items-center gap-3">
                           <div className="w-2 h-2 rounded-full" style={{ backgroundColor: ROLE_COLORS[role] }} aria-hidden="true" />
                           {role}
                         </div>
-                        {(editingUser?.role || 'viewer') === role && <ShieldCheck className="w-5 h-5" aria-hidden="true" />}
+                        {drawerRole === role && <ShieldCheck className="w-5 h-5" aria-hidden="true" />}
                       </button>
                     ))}
                   </div>
                 </div>
 
                 <button 
-                  type="button"
-                  onClick={() => { setShowDrawer(false); setEditingUser(null); }}
+                  type="submit"
                   className="w-full bg-accent text-white font-bold text-xs py-5 rounded-2xl shadow-xl shadow-accent/30 hover:bg-accent/90 transition-all uppercase mt-4 outline-none focus:ring-2 focus:ring-accent/20"
                 >
                   {editingUser ? 'UPDATE PERMISSIONS' : 'SEND INVITATION'}
