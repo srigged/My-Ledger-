@@ -30,6 +30,47 @@ A high-performance, production-grade financial tracking application built with *
 *   **Requirement:** Instant updates across all connected clients without page refreshes.
 *   **Achievement:** Leveraged Firestore's `onSnapshot` listeners for both user profiles and financial records. This ensures that any change made by an Admin is instantly reflected on an Analyst's dashboard.
 
+## 🏗 Architecture Diagram
+
+```mermaid
+flowchart TB
+    User((User))
+    
+    subgraph Frontend ["Frontend (React SPA)"]
+        direction TB
+        App[App Component]
+        Context[Context: Auth, Theme]
+        Views[Views: Dashboard, Records, Login]
+        Charts[Recharts: Interactive Trends]
+        
+        App --> Context
+        Context --> Views
+        Views --> Charts
+    end
+
+    subgraph Firebase ["Backend Services (Firebase)"]
+        direction TB
+        Auth[Firebase Auth]
+        Firestore[(Cloud Firestore)]
+        Rules{Security Rules / RBAC}
+        
+        Firestore --- Rules
+    end
+
+    subgraph Infrastructure ["Infrastructure"]
+        GCR[Google Cloud Run]
+    end
+
+    User <--> GCR
+    GCR -- Serves --> Frontend
+    Frontend <--> Auth
+    Frontend <--> Firestore
+    
+    style Frontend fill:#f9f,stroke:#333,stroke-width:2px
+    style Firebase fill:#bbf,stroke:#333,stroke-width:2px
+    style Infrastructure fill:#dfd,stroke:#333,stroke-width:2px
+```
+
 ## Technical Details
 - **Framework:** React 19 + Vite.
 - **Routing:** React Router v6 with Protected Routes.
