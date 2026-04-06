@@ -2,20 +2,33 @@
 
 A high-precision, role-based financial management system with a dark editorial aesthetic.
 
-## Aesthetic Direction
-- **Editorial Design:** Bloomberg-inspired "data-journalism" look.
-- **Typography:** DM Serif Display (Numerals/Headers) paired with IBM Plex Mono (Data/Labels).
-- **Color Palette:** Deep Charcoal (#0E0F11), Off-White (#F0EDE6), and Electric Amber (#F5A623).
-- **Precision:** Grid-based layout with 1px hairline borders and SVG noise textures.
+A high-performance, production-grade financial tracking application built with **React**, **TypeScript**, and **Firebase**. Designed for precision, security, and real-time data exploration.
 
-## Features
-- **Role-Based Access Control:**
-  - **Admin:** Full CRUD on records and user management.
-  - **Analyst:** View records, edit own entries, access deep insights.
-  - **Viewer:** Read-only access to dashboard and records.
-- **Real-time Analytics:** Dashboard summaries and trend charts.
-- **Interactive Records:** Paginated table with inline expansion and slide-in drawers.
-- **User Management:** Admin-only portal for inviting and managing personnel.
+## 🚀 Core Requirements & Implementation
+
+### 1. Real-Time Financial Dashboard
+*   **Requirement:** A centralized hub for monitoring fiscal health at a glance.
+*   **Achievement:** Developed a dynamic dashboard featuring high-contrast KPI cards for Income, Expenses, Net Balance, and Transaction counts. Used `recharts` to provide a 6-month trend analysis and a categorical spending breakdown.
+
+### 2. Interactive Data Exploration (Zoom & Pan)
+*   **Requirement:** Ability to drill down into specific time ranges within financial trends.
+*   **Achievement:** Enhanced the Trend Analysis chart with **Drag-to-Zoom** functionality using Recharts `ReferenceArea`. Integrated a **Brush** component for seamless panning across large datasets and a one-click **Reset Zoom** feature for quick navigation.
+
+### 3. Secure Multi-Factor Authentication
+*   **Requirement:** Robust user onboarding and secure access management.
+*   **Achievement:** Integrated **Firebase Authentication** supporting both Google OAuth and Email/Password flows. Implemented a custom **Password Reset** flow with automated email dispatch to ensure account recoverability.
+
+### 4. Granular Role-Based Access Control (RBAC)
+*   **Requirement:** Differentiated access levels for Admins, Analysts, and Viewers.
+*   **Achievement:** Architected a secure user profile system in **Firestore**. Enforced strict **Security Rules** that validate operations based on user roles, preventing unauthorized data modification or privilege escalation.
+
+### 5. Persistent Dark & Light Modes
+*   **Requirement:** A modern, accessible UI that adapts to user preferences.
+*   **Achievement:** Built a custom `ThemeContext` with `localStorage` persistence. Styled the entire application using **Tailwind CSS** utility classes, ensuring consistent contrast and aesthetic appeal across both themes.
+
+### 6. Real-Time Data Synchronization
+*   **Requirement:** Instant updates across all connected clients without page refreshes.
+*   **Achievement:** Leveraged Firestore's `onSnapshot` listeners for both user profiles and financial records. This ensures that any change made by an Admin is instantly reflected on an Analyst's dashboard.
 
 ## Technical Details
 - **Framework:** React 19 + Vite.
